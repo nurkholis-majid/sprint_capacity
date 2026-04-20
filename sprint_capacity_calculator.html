@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sprint Capacity Calculator</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f3ee;
+      --bg2: #ffffff;
+      --bg3: #f0ede6;
+      --bg4: #e8e4da;
+      --border: #ddd9cf;
+      --border2: #c8c3b5;
+      --text: #1a1814;
+      --text2: #5c5849;
+      --text3: #9c9484;
+      --lead: #b45309;
+      --lead-bg: #fef3c7;
+      --lead-bdr: #fcd34d;
+      --dev: #1d4ed8;
+      --dev-bg: #eff6ff;
+      --dev-bdr: #bfdbfe;
+      --qa: #15803d;
+      --qa-bg: #f0fdf4;
+      --qa-bdr: #bbf7d0;
+      --danger: #dc2626;
+      --warn: #d97706;
+      --r-sm: 6px;
+      --r-md: 10px;
+      --font: 'Fraunces', Georgia, serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.09), 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 36px 20px 60px;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, #c8c3b5 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.45;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ─── Header ─── */
+    .header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--text);
+      margin-bottom: 24px;
+    }
+
+    .title {
+      font-family: var(--font);
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.4px;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--text3);
+      font-family: var(--mono);
+      margin-top: 4px;
+    }
+
+    .sprint-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--bg2);
+      background: var(--text);
+      padding: 5px 10px;
+      border-radius: 2px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ─── Two-column layout ─── */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .right-panel {
+      position: sticky;
+      top: 20px;
+      min-width: 0;
+    }
+
+    /* ─── Card ─── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--text3);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ─── Config grid ─── */
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .config-item label {
+      font-size: 11px;
+      color: var(--text2);
+      display: block;
+      margin-bottom: 6px;
+      font-family: var(--mono);
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-row input {
+      width: 76px;
+      padding: 7px 10px;
+      font-size: 16px;
+      font-family: var(--mono);
+      font-weight: 500;
+      color: var(--text);
+      background: var(--bg3);
+      border: 1px solid var(--border2);
+      border-radius: var(--r-sm);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+      -moz-appearance: textfield;
+    }
+
+    .input-row input::-webkit-outer-spin-button,
+    .input-row input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
+
+    .input-row input:focus {
+      border-color: var(--text);
+      box-shadow: 0 0 0 3px rgba(26, 24, 20, .08);
+    }
+
+    .input-unit {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .input-hint {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+
+    /* ─── SP role cards ─── */
+    .sp-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+
+    .sp-card {
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+      border: 1px solid;
+    }
+
+    .sp-card.lead {
+      background: var(--lead-bg);
+      border-color: var(--lead-bdr);
+    }
+
+    .sp-card.dev {
+      background: var(--dev-bg);
+      border-color: var(--dev-bdr);
+    }
+
+    .sp-card.qa {
+      background: var(--qa-bg);
+      border-color: var(--qa-bdr);
+    }
+
+    .sp-role-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sp-role-label .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sp-input {
+      width: 100%;
+      padding: 3px 0;
+      font-size: 24px;
+      font-family: var(--mono);
+      font-weight: 500;
+      background: none;
+      border: none;
+      border-bottom: 2px solid;
+      outline: none;
+      transition: border-color .15s;
+      -moz-appearance: textfield;
+    }
+
+    .sp-input::-webkit-outer-spin-button,
+    .sp-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
+
+    .sp-card.lead .sp-input {
+      color: var(--lead);
+      border-bottom-color: var(--lead-bdr);
+    }
+
+    .sp-card.dev .sp-input {
+      color: var(--dev);
+      border-bottom-color: var(--dev-bdr);
+    }
+
+    .sp-card.qa .sp-input {
+      color: var(--qa);
+      border-bottom-color: var(--qa-bdr);
+    }
+
+    .sp-card.lead .sp-input:focus {
+      border-bottom-color: var(--lead);
+    }
+
+    .sp-card.dev .sp-input:focus {
+      border-bottom-color: var(--dev);
+    }
+
+    .sp-card.qa .sp-input:focus {
+      border-bottom-color: var(--qa);
+    }
+
+    .sp-unit {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+
+    /* ─── Member list ─── */
+    .member-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .member-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .member-card:hover {
+      border-color: var(--border2);
+      box-shadow: var(--shadow);
+    }
+
+    .member-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+    }
+
+    .member-card.role-lead::before {
+      background: var(--lead);
+    }
+
+    .member-card.role-dev::before {
+      background: var(--dev);
+    }
+
+    .member-card.role-qa::before {
+      background: var(--qa);
+    }
+
+    .member-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .role-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: .07em;
+      padding: 2px 6px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .badge-lead {
+      background: var(--lead-bg);
+      color: var(--lead);
+      border: 1px solid var(--lead-bdr);
+    }
+
+    .badge-dev {
+      background: var(--dev-bg);
+      color: var(--dev);
+      border: 1px solid var(--dev-bdr);
+    }
+
+    .badge-qa {
+      background: var(--qa-bg);
+      color: var(--qa);
+      border: 1px solid var(--qa-bdr);
+    }
+
+    .member-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      background: none;
+      border: none;
+      outline: none;
+      width: 100%;
+      padding: 0;
+      font-family: var(--font);
+      cursor: text;
+    }
+
+    .member-name:focus {
+      border-bottom: 1px solid var(--border2);
+    }
+
+    .remove-btn {
+      margin-left: auto;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: background .15s, color .15s;
+      flex-shrink: 0;
+    }
+
+    .remove-btn:hover {
+      background: #fee2e2;
+      color: var(--danger);
+    }
+
+    .leave-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .leave-label {
+      font-size: 11px;
+      color: var(--text3);
+      flex: 1;
+      font-family: var(--mono);
+    }
+
+    .leave-input {
+      width: 48px;
+      padding: 3px 7px;
+      font-size: 13px;
+      font-family: var(--mono);
+      color: var(--text);
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      outline: none;
+      text-align: center;
+      transition: border-color .15s;
+      -moz-appearance: textfield;
+    }
+
+    .leave-input::-webkit-outer-spin-button,
+    .leave-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+    }
+
+    .leave-input:focus {
+      border-color: var(--text);
+    }
+
+    .leave-unit {
+      font-size: 11px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .add-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .add-btn {
+      font-size: 11px;
+      font-family: var(--mono);
+      padding: 7px 8px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      border: 1px dashed;
+      background: none;
+      transition: background .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .add-btn-lead {
+      color: var(--lead);
+      border-color: var(--lead-bdr);
+    }
+
+    .add-btn-lead:hover {
+      background: var(--lead-bg);
+    }
+
+    .add-btn-dev {
+      color: var(--dev);
+      border-color: var(--dev-bdr);
+    }
+
+    .add-btn-dev:hover {
+      background: var(--dev-bg);
+    }
+
+    .add-btn-qa {
+      color: var(--qa);
+      border-color: var(--qa-bdr);
+    }
+
+    .add-btn-qa:hover {
+      background: var(--qa-bg);
+    }
+
+    /* ─── Result card (right column) ─── */
+    .result-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Hero */
+    .result-hero {
+      background: var(--text);
+      padding: 22px 22px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-hero::after {
+      content: 'SP';
+      position: absolute;
+      right: 14px;
+      bottom: -14px;
+      font-family: var(--mono);
+      font-size: 90px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+      line-height: 1;
+      letter-spacing: -3px;
+    }
+
+    .result-hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .result-hero-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: rgba(255, 255, 255, .4);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding-top: 2px;
+    }
+
+    .health-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid;
+      position: relative;
+      z-index: 1;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .health-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .result-sp-value {
+      font-family: var(--mono);
+      font-size: 52px;
+      font-weight: 500;
+      color: #fff;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .result-sp-unit {
+      font-size: 16px;
+      color: rgba(255, 255, 255, .45);
+      margin-left: 3px;
+      font-family: var(--mono);
+    }
+
+    .result-formula {
+      font-size: 10px;
+      color: rgba(255, 255, 255, .3);
+      margin-top: 8px;
+      font-family: var(--mono);
+      line-height: 1.6;
+      word-break: break-word;
+      white-space: pre-line;
+    }
+
+    /* Metrics 2×2 */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .metric-item {
+      padding: 12px 16px;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .metric-item:nth-child(2n) {
+      border-right: none;
+    }
+
+    .metric-item:nth-last-child(-n+2) {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 4px;
+    }
+
+    .metric-val {
+      font-size: 20px;
+      font-weight: 500;
+      font-family: var(--mono);
+      color: var(--text);
+    }
+
+    .metric-unit {
+      font-size: 10px;
+      color: var(--text3);
+      margin-top: 1px;
+      font-family: var(--mono);
+    }
+
+    /* Warning */
+    .warn-bar {
+      padding: 9px 16px;
+      font-size: 11px;
+      font-family: var(--mono);
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      border-top: 1px solid var(--border);
+      background: #fffbeb;
+      color: var(--warn);
+      line-height: 1.4;
+    }
+
+    .warn-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Breakdown */
+    .breakdown {
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .breakdown-title {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-bottom: 10px;
+    }
+
+    .bd-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bd-row:last-child {
+      border-bottom: none;
+    }
+
+    .bd-top {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bd-name {
+      font-size: 12px;
+      color: var(--text);
+      font-family: var(--font);
+    }
+
+    .bd-meta {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .bd-days {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .bd-sp {
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--mono);
+    }
+
+    .bd-leave-tag {
+      font-size: 9px;
+      background: #fffbeb;
+      color: var(--warn);
+      padding: 1px 5px;
+      border-radius: 2px;
+      font-family: var(--mono);
+      border: 1px solid #fcd34d;
+    }
+
+    .bd-bar-wrap {
+      height: 3px;
+      background: var(--bg4);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .bd-bar {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .4s ease;
+    }
+
+    /* Team comp footer */
+    .team-comp {
+      padding: 10px 18px;
+      background: var(--bg3);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .comp-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .comp-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .comp-label {
+      font-size: 11px;
+      color: var(--text2);
+      font-family: var(--mono);
+    }
+
+    .comp-val {
+      margin-left: auto;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text3);
+    }
+
+    .comp-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 2px 0;
+    }
+
+    .comp-eff-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .comp-eff-label {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    .comp-eff-val {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 820px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .right-panel {
+        position: static;
+      }
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 12px 48px;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .title {
+        font-size: 22px;
+      }
+
+      .config-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sp-row {
+        grid-template-columns: 1fr;
+      }
+
+      .member-list {
+        grid-template-columns: 1fr;
+      }
+
+      .add-buttons {
+        grid-template-columns: 1fr;
+      }
+
+      .result-sp-value {
+        font-size: 40px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* Animate in */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card {
+      animation: fadeUp .25s ease both;
+    }
+
+    .card:nth-child(1) {
+      animation-delay: .04s;
+    }
+
+    .card:nth-child(2) {
+      animation-delay: .08s;
+    }
+
+    .card:nth-child(3) {
+      animation-delay: .12s;
+    }
+
+    .result-card {
+      animation: fadeUp .25s .16s ease both;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="header">
+      <div>
+        <h1 class="title">Sprint Capacity Calculator</h1>
+      </div>
+      <span class="sprint-badge">AGILE SCRUM</span>
+    </div>
+
+    <div class="layout">
+
+      <!-- LEFT: input sections -->
+      <div class="left-panel">
+
+        <div class="card">
+          <div class="card-title">Konfigurasi Sprint</div>
+          <div class="config-grid">
+            <div class="config-item">
+              <label>Hari kerja per sprint</label>
+              <div class="input-row">
+                <input type="number" id="sprint-days" value="10" min="1" max="30">
+                <span class="input-unit">hari</span>
+              </div>
+              <div class="input-hint">Default 10 hari (2 minggu)</div>
+            </div>
+            <div class="config-item">
+              <label>Scrum event & libur</label>
+              <div class="input-row">
+                <input type="number" id="ceremony-days" value="2" min="0" max="5">
+                <span class="input-unit">hari = 0 SP</span>
+              </div>
+              <div class="input-hint">Tidak ada output SP</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Kapasitas SP Harian per Role</div>
+          <div class="sp-row">
+            <div class="sp-card lead">
+              <div class="sp-role-label" style="color:var(--lead)">
+                <span class="dot" style="background:var(--lead)"></span>Developer Lead
+              </div>
+              <input type="number" class="sp-input" id="sp-lead" value="0.5" min="0.5" max="30" step="0.5">
+              <div class="sp-unit">SP / hari</div>
+            </div>
+            <div class="sp-card dev">
+              <div class="sp-role-label" style="color:var(--dev)">
+                <span class="dot" style="background:var(--dev)"></span>Developer
+              </div>
+              <input type="number" class="sp-input" id="sp-dev" value="0.5" min="0.5" max="30" step="0.5">
+              <div class="sp-unit">SP / hari</div>
+            </div>
+            <div class="sp-card qa">
+              <div class="sp-role-label" style="color:var(--qa)">
+                <span class="dot" style="background:var(--qa)"></span>QA / Tester
+              </div>
+              <input type="number" class="sp-input" id="sp-qa" value="0.4" min="0.5" max="30" step="0.5">
+              <div class="sp-unit">SP / hari</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Anggota Tim</div>
+          <div class="member-list" id="member-list"></div>
+          <div class="add-buttons">
+            <button class="add-btn add-btn-lead" onclick="addMember('lead')">+ Dev Lead</button>
+            <button class="add-btn add-btn-dev" onclick="addMember('dev')">+ Developer</button>
+            <button class="add-btn add-btn-qa" onclick="addMember('qa')">+ QA / Tester</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: result (sticky) -->
+      <div class="right-panel">
+        <div class="result-card">
+
+          <div class="result-hero">
+            <div class="result-hero-top">
+              <div class="result-hero-label">Total kapasitas sprint</div>
+              <div class="health-badge" id="health-badge"></div>
+            </div>
+            <div>
+              <span class="result-sp-value" id="r-sp">—</span>
+              <span class="result-sp-unit">SP</span>
+            </div>
+            <div class="result-formula" id="r-formula">—</div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <div class="metric-label">Lead days</div>
+              <div class="metric-val" id="r-lead-days">—</div>
+              <div class="metric-unit">hari efektif</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">Dev days</div>
+              <div class="metric-val" id="r-dev-days">—</div>
+              <div class="metric-unit">hari efektif</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">QA days</div>
+              <div class="metric-val" id="r-qa-days">—</div>
+              <div class="metric-unit">hari efektif</div>
+            </div>
+            <div class="metric-item">
+              <div class="metric-label">Total cuti</div>
+              <div class="metric-val" id="r-leave">—</div>
+              <div class="metric-unit">hari</div>
+            </div>
+          </div>
+
+          <div id="warning-box" style="display:none" class="warn-bar">
+            <span class="warn-dot"></span>
+            <span id="warning-text"></span>
+          </div>
+
+          <div class="breakdown">
+            <div class="breakdown-title">Breakdown per anggota</div>
+            <div id="r-breakdown"></div>
+          </div>
+
+          <div class="team-comp" id="team-comp"></div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let members = [
+      { id: 1, role: 'lead', name: 'Dev Lead', leave: 0 },
+      { id: 2, role: 'dev', name: 'Dev 1', leave: 0 },
+      { id: 3, role: 'dev', name: 'Dev 2', leave: 0 },
+      { id: 4, role: 'qa', name: 'QA 1', leave: 0 },
+    ];
+    let nextId = 5;
+
+    const roleColor = { lead: '#b45309', dev: '#1d4ed8', qa: '#15803d' };
+    const roleBadge = { lead: 'badge-lead', dev: 'badge-dev', qa: 'badge-qa' };
+    const roleCardCls = { lead: 'role-lead', dev: 'role-dev', qa: 'role-qa' };
+    const roleLabel = { lead: 'LEAD', dev: 'DEV', qa: 'QA' };
+
+    function addMember(role) {
+      const count = members.filter(m => m.role === role).length + 1;
+      const name = role === 'lead' ? 'Dev Lead' : role === 'dev' ? `Dev ${count}` : `QA ${count}`;
+      members.push({ id: nextId++, role, name, leave: 0 });
+      renderMembers(); calc();
+    }
+    function removeMember(id) {
+      if (members.length <= 1) return;
+      members = members.filter(m => m.id !== id);
+      renderMembers(); calc();
+    }
+    function updateMember(id, field, val) {
+      const m = members.find(x => x.id === id);
+      if (m) { m[field] = val; calc(); }
+    }
+
+    function renderMembers() {
+      document.getElementById('member-list').innerHTML = members.map(m => `
+    <div class="member-card ${roleCardCls[m.role]}">
+      <div class="member-top">
+        <span class="role-badge ${roleBadge[m.role]}">${roleLabel[m.role]}</span>
+        <input class="member-name" type="text" value="${m.name}"
+          oninput="updateMember(${m.id},'name',this.value)">
+        ${members.length > 1
+          ? `<button class="remove-btn" onclick="removeMember(${m.id})">✕</button>`
+          : ''}
+      </div>
+      <div class="leave-row">
+        <span class="leave-label">Cuti sprint ini</span>
+        <input class="leave-input" type="number" min="0" value="${m.leave}"
+          oninput="updateMember(${m.id},'leave',+this.value)">
+        <span class="leave-unit">hari</span>
+      </div>
+    </div>
+  `).join('');
+    }
+
+    function g(id) { return parseFloat(document.getElementById(id).value) || 0; }
+
+    function calc() {
+      const sprintDays = g('sprint-days');
+      const ceremonyDays = g('ceremony-days');
+      const spMap = { lead: g('sp-lead'), dev: g('sp-dev'), qa: g('sp-qa') };
+
+      let totalSp = 0, totalLeave = 0, leadDays = 0, devDays = 0, qaDays = 0;
+      const breakdown = [];
+
+      members.forEach(m => {
+        const leave = Math.min(m.leave || 0, sprintDays);
+        const effectiveDays = Math.max(0, sprintDays - ceremonyDays - leave);
+        const sp = effectiveDays * spMap[m.role];
+        totalSp += sp;
+        totalLeave += leave;
+        if (m.role === 'lead') leadDays += effectiveDays;
+        else if (m.role === 'dev') devDays += effectiveDays;
+        else qaDays += effectiveDays;
+        breakdown.push({ ...m, effectiveDays, sp, leave });
+      });
+
+      document.getElementById('r-sp').textContent = Math.round(totalSp);
+      document.getElementById('r-lead-days').textContent = leadDays;
+      document.getElementById('r-dev-days').textContent = devDays;
+      document.getElementById('r-qa-days').textContent = qaDays;
+      document.getElementById('r-leave').textContent = totalLeave;
+
+      const effDays = sprintDays - ceremonyDays;
+      const lc = members.filter(m => m.role === 'lead').length;
+      const dc = members.filter(m => m.role === 'dev').length;
+      const qc = members.filter(m => m.role === 'qa').length;
+      const parts = [];
+      if (lc) parts.push(`${lc}L × ${effDays}d × ${spMap.lead} SP`);
+      if (dc) parts.push(`${dc}D × ${effDays}d × ${spMap.dev} SP`);
+      if (qc) parts.push(`${qc}Q × ${effDays}d × ${spMap.qa} SP`);
+      document.getElementById('r-formula').textContent =
+        parts.join('\n+ ') + (totalLeave > 0 ? '\n− cuti' : '');
+
+      const leaveRatio = totalLeave / (members.length * sprintDays);
+      let hc, ht, hbg, hbdr;
+      if (leaveRatio === 0) { hc = '#15803d'; ht = 'Full capacity'; hbg = 'rgba(21,128,61,.15)'; hbdr = 'rgba(21,128,61,.3)'; }
+      else if (leaveRatio < .15) { hc = '#d97706'; ht = 'Reduced'; hbg = 'rgba(217,119,6,.12)'; hbdr = 'rgba(217,119,6,.3)'; }
+      else { hc = '#dc2626'; ht = 'Low capacity'; hbg = 'rgba(220,38,38,.12)'; hbdr = 'rgba(220,38,38,.3)'; }
+      const hb = document.getElementById('health-badge');
+      hb.style.cssText = `color:${hc};background:${hbg};border-color:${hbdr}`;
+      hb.innerHTML = `<span class="health-dot" style="background:${hc}"></span>${ht}`;
+
+      document.getElementById('r-breakdown').innerHTML = breakdown.map(m => {
+        const pct = totalSp > 0 ? (m.sp / totalSp * 100) : 0;
+        return `
+      <div class="bd-row">
+        <div class="bd-top">
+          <span class="role-badge ${roleBadge[m.role]}">${roleLabel[m.role]}</span>
+          <span class="bd-name">${m.name}</span>
+          <div class="bd-meta">
+            ${m.leave > 0 ? `<span class="bd-leave-tag">−${m.leave}h</span>` : ''}
+            <span class="bd-days">${m.effectiveDays}d</span>
+            <span class="bd-sp" style="color:${roleColor[m.role]}">${Math.round(m.sp)} SP</span>
+          </div>
+        </div>
+        <div class="bd-bar-wrap">
+          <div class="bd-bar" style="width:${pct}%;background:${roleColor[m.role]}"></div>
+        </div>
+      </div>`;
+      }).join('');
+
+      const wb = document.getElementById('warning-box');
+      if (totalLeave > 0) {
+        document.getElementById('warning-text').textContent =
+          `${totalLeave} hari cuti terdeteksi — kapasitas sprint berkurang dari maksimum.`;
+        wb.style.display = 'flex';
+      } else { wb.style.display = 'none'; }
+
+      document.getElementById('team-comp').innerHTML = `
+    <div class="comp-row">
+      <span class="comp-dot" style="background:var(--lead)"></span>
+      <span class="comp-label">Dev Lead</span>
+      <span class="comp-val">${lc} orang</span>
+    </div>
+    <div class="comp-row">
+      <span class="comp-dot" style="background:var(--dev)"></span>
+      <span class="comp-label">Developer</span>
+      <span class="comp-val">${dc} orang</span>
+    </div>
+    <div class="comp-row">
+      <span class="comp-dot" style="background:var(--qa)"></span>
+      <span class="comp-label">Tester / QA</span>
+      <span class="comp-val">${qc} orang</span>
+    </div>
+    <div class="comp-divider"></div>
+    <div class="comp-eff-row">
+      <span class="comp-eff-label">Hari efektif per orang</span>
+      <span class="comp-eff-val">${effDays} hari</span>
+    </div>
+  `;
+    }
+
+    ['sprint-days', 'ceremony-days', 'sp-lead', 'sp-dev', 'sp-qa'].forEach(id =>
+      document.getElementById(id).addEventListener('input', calc)
+    );
+    renderMembers(); calc();
+  </script>
+</body>
+
+</html>
